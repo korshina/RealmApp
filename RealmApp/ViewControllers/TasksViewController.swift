@@ -12,6 +12,7 @@ import RealmSwift
 class TasksViewController: UITableViewController {
     
     var taskList: TaskList!
+    var delegate: TasksViewControllerDelegate!
     
     private var currentTasks: Results<Task>!
     private var completedTasks: Results<Task>!
@@ -108,6 +109,7 @@ extension TasksViewController {
         let doneAction = UIContextualAction(style: .normal, title: "Done") { _, _, isDone in
             StorageManager.shared.done(task)
             self.updateCompletedTasks()
+            self.delegate.updateCompletedTasks()
             tableView.beginUpdates()
             tableView.deleteRows(at: [indexPath], with: .automatic)
             
@@ -119,6 +121,7 @@ extension TasksViewController {
         let unDoneAction = UIContextualAction(style: .normal, title: "Undone") { _, _, isNotDone in
             StorageManager.shared.unDone(task)
             self.updateCompletedTasks()
+            self.delegate.updateCompletedTasks()
             tableView.beginUpdates()
             tableView.deleteRows(at: [indexPath], with: .automatic)
             tableView.insertRows(at: [IndexPath(row: self.currentTasks.count - 1, section: 0)], with: .automatic)

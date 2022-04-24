@@ -10,7 +10,7 @@ import UIKit
 import RealmSwift
 
 protocol TasksViewControllerDelegate {
-    func updateCompletedTasks(_ number: Int)
+    func updateCompletedTasks()
 }
 
 class TaskListViewController: UITableViewController {
@@ -43,15 +43,12 @@ class TaskListViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "TaskListCell", for: indexPath)
-        var content = cell.defaultContentConfiguration()
         let taskList = taskLists[indexPath.row]
-        content.text = taskList.name
-        
-        content.secondaryText = "\(taskList.tasks.count)"
-        cell.contentConfiguration = content
-        
+        setCell(cell, taskList: taskList)
         return cell
     }
+    
+    
     
     // MARK: - Table View Data Source
     override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
@@ -89,6 +86,7 @@ class TaskListViewController: UITableViewController {
         guard let tasksVC = segue.destination as? TasksViewController else { return }
         let taskList = taskLists[indexPath.row]
         tasksVC.taskList = taskList
+        tasksVC.delegate = self
     }
 
     @IBAction func sortingList(_ sender: UISegmentedControl) {
@@ -110,6 +108,20 @@ class TaskListViewController: UITableViewController {
         DataManager.shared.createTempData {
             self.tableView.reloadData()
         }
+    }
+    
+    private func setCell(_ cell: UITableViewCell, taskList: TaskList) {
+        var content = cell.defaultContentConfiguration()
+        content.text = taskList.name
+        if taskList.tasks.allSatisfy({ $0.isComplete == true }) {
+            cell.accessoryType = .checkmark
+        } else {
+            cell.accessoryType = .none
+            let filteredTasks = taskList.tasks.filter("isComplete = false")
+            content.secondaryText = "\(filteredTasks.count)"
+        }
+        
+        cell.contentConfiguration = content
     }
 }
 
@@ -140,8 +152,8 @@ extension TaskListViewController {
 }
 
 extension TaskListViewController: TasksViewControllerDelegate {
-    func updateCompletedTasks(_ number: Int) {
-        
+    func updateCompletedTasks() {
+        tableView.reloadData()
     }
     
     
